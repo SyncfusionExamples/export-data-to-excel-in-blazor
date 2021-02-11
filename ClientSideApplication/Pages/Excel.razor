@@ -1,0 +1,62 @@
+﻿@page "/Excel"
+@using Syncfusion.XlsIO;
+@using Syncfusion.Drawing;
+@using System.IO;
+@inject Microsoft.JSInterop.IJSRuntime JS
+@using System.Data;
+
+<h2>Syncfusion Excel library (Essential XlsIO)</h2>
+<p>Syncfusion Excel library (Essential XlsIO)  is a Blazor Excel library used to create, read, edit, and convert Excel files in your applications without Microsoft Office dependencies.</p>
+<button class="btn btn-primary" @onclick="@CreateDocument">Create Document</button>
+
+@code{
+    /// <summary>
+    /// Create an Excel document
+    /// </summary>
+public async void CreateDocument()
+{
+    //Create an instance of ExcelEngine
+    using (ExcelEngine excelEngine = new ExcelEngine())
+    {
+        IApplication application = excelEngine.Excel;
+        application.DefaultVersion = ExcelVersion.Xlsx;
+
+        //Create a workbook
+        IWorkbook workbook = application.Workbooks.Create(1);
+        IWorksheet worksheet = workbook.Worksheets[0];
+
+        //Initialize DataTable and data get from SampleDataTable method
+        DataTable table = SampleDataTable();
+
+        //Import data from DataTable
+        worksheet.ImportDataTable(table, true, 1, 1);
+
+        worksheet.UsedRange.AutofitColumns();
+
+
+        //Save the document as a stream and retrun the stream.
+        using (MemoryStream stream = new MemoryStream())
+        {
+            //Save the created Excel document to MemoryStream
+            workbook.SaveAs(stream);
+
+            //Download the excel file
+            await JS.SaveAs("Sample.xlsx", stream.ToArray());
+        }
+    }
+}
+private DataTable SampleDataTable()
+{
+    DataTable reports = new DataTable();
+    reports.Columns.Add("SalesPerson");
+    reports.Columns.Add("Age", typeof(int));
+    reports.Columns.Add("Salary", typeof(int));
+    reports.Rows.Add("Andy Bernard", 21, 30000);
+    reports.Rows.Add("Jim Halpert", 25, 40000);
+    reports.Rows.Add("Karen Fillippelli", 30, 50000);
+    reports.Rows.Add("Phyllis Lapin", 34, 39000);
+    reports.Rows.Add("Stanley Hudson", 45, 58000);
+
+    return reports;
+}
+}
